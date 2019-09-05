@@ -1,0 +1,73 @@
+version: '3.3'
+services:
+#  broker:
+#    image: 10.210.16.204:8084/broker
+#    environment:
+#      KAFKA_ADVERTISED_LISTENERS: INSIDE://:29092,OUTSIDE://10.210.16.102:9092
+#      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+#      KAFKA_LISTENERS: INSIDE://:29092,OUTSIDE://:9092
+#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+#      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+#    ports:
+#     - 9092:9092
+#    networks:
+#     - portalv3_default
+#    logging:
+#      driver: json-file
+#    deploy:
+#      restart_policy:
+#        condition: on-failure
+#      placement:
+#        constraints:
+#         - node.role == manager
+#         - node.role != worker
+#  zookeeper:
+#    image: 10.210.16.204:8084/cp-zookeeper:latest
+#    environment:
+#      ZOOKEEPER_CLIENT_PORT: '2181'
+#      ZOOKEEPER_TICK_TIME: '2000'
+#    ports:
+#     - 2181:2181
+#    networks:
+#     - portalv3_default
+#    logging:
+#      driver: json-file
+#    deploy:
+#      update_config:
+#        delay: 30s
+#      restart_policy:
+#        condition: on-failure
+#      placement:
+#        constraints:
+#         - node.role == manager
+#         - node.role != worker
+
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+  broker:
+    image: wurstmeister/kafka:latest
+    ports:
+      - target: 9094
+        published: 9094
+        protocol: tcp
+        mode: host
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:29092,OUTSIDE://10.210.16.102:9094
+      KAFKA_LISTENERS: INSIDE://:29092,OUTSIDE://:9094
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      placement:
+        constraints:
+         - node.role == manager
+         - node.role != worker
+
+
+networks:
+  portalv3_default:
+    external: true
